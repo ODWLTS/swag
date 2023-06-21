@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	httpSwagger "github.com/swaggo/http-swagger"
+	httpSwagger "github.com/ODWLTS/http-swagger"
 	"github.com/ODWLTS/swag/example/markdown/api"
 	_ "github.com/ODWLTS/swag/example/markdown/docs"
 )

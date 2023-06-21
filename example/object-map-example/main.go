@@ -5,8 +5,8 @@ import (
 	"github.com/ODWLTS/swag/example/object-map-example/controller"
 	_ "github.com/ODWLTS/swag/example/object-map-example/docs"
 
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/ODWLTS/files"
+	ginSwagger "github.com/ODWLTS/gin-swagger"
 )
 
 // @title Swagger Map Example API
