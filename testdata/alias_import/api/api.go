@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/swaggo/swag/testdata/alias_import/data"
-	"github.com/swaggo/swag/testdata/alias_type/types"
+	"github.com/ODWLTS/swag/testdata/alias_import/data"
+	"github.com/ODWLTS/swag/testdata/alias_type/types"
 )
 
 // @Summary Get application
