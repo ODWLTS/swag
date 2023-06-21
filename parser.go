@@ -147,6 +147,9 @@ type Parser struct {
 	// excludes excludes dirs and files in SearchDir
 	excludes map[string]struct{}
 
+	// excludeDependencies excludes a list of specific dependencies
+	excludeDependencies map[string]struct{}
+
 	// debugging output goes here
 	debug Debugger
 
@@ -204,15 +207,16 @@ func New(options ...func(*Parser)) *Parser {
 				Extensions: nil,
 			},
 		},
-		packages:           NewPackagesDefinitions(),
-		debug:              log.New(os.Stdout, "", log.LstdFlags),
-		parsedSchemas:      make(map[*TypeSpecDef]*Schema),
-		outputSchemas:      make(map[*TypeSpecDef]*Schema),
-		existSchemaNames:   make(map[string]*Schema),
-		toBeRenamedSchemas: make(map[string]string),
-		excludes:           make(map[string]struct{}),
-		fieldParserFactory: newTagBaseFieldParser,
-		Overrides:          make(map[string]string),
+		packages:             NewPackagesDefinitions(),
+		debug:                log.New(os.Stdout, "", log.LstdFlags),
+		parsedSchemas:        make(map[*TypeSpecDef]*Schema),
+		outputSchemas:        make(map[*TypeSpecDef]*Schema),
+		existSchemaNames:     make(map[string]*Schema),
+		toBeRenamedSchemas:   make(map[string]string),
+		excludes:             make(map[string]struct{}),
+		excludeDependencies: make(map[string]struct{}),
+		fieldParserFactory:   newTagBaseFieldParser,
+		Overrides:            make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -244,6 +248,19 @@ func SetExcludedDirsAndFiles(excludes string) func(*Parser) {
 			if f != "" {
 				f = filepath.Clean(f)
 				p.excludes[f] = struct{}{}
+			}
+		}
+	}
+}
+
+// SetExcludeDependencies sets specific dependencies to be excluded when searching.
+func SetExcludeDependencies(dependencies string) func(*Parser) {
+	return func(p *Parser) {
+		for _, f := range strings.Split(dependencies, ",") {
+			f = strings.TrimSpace(f)
+			if f != "" {
+				f = filepath.Clean(f)
+				p.excludeDependencies[f] = struct{}{}
 			}
 		}
 	}
@@ -786,7 +803,7 @@ func (parser *Parser) ParseRouterAPIInfo(fileName string, astFile *ast.File) err
 			for _, comment := range astDeclaration.Doc.List {
 				err := operation.ParseComment(comment.Text, astFile)
 				if err != nil {
-					return fmt.Errorf("ParseComment error in file %s :%+v", fileName, err)
+					return fmt.Errorf("ODW ParseComment error in file %s :%+v", fileName, err)
 				}
 			}
 
@@ -1468,6 +1485,12 @@ func (parser *Parser) getAllGoFileInfo(packageDir, searchDir string) error {
 		relPath, err := filepath.Rel(searchDir, path)
 		if err != nil {
 			return err
+		}
+
+		if parser.excludes != nil {
+			if _, ok := parser.excludes[relPath]; ok {
+				return nil
+			}
 		}
 
 		return parser.parseFile(filepath.ToSlash(filepath.Dir(filepath.Clean(filepath.Join(packageDir, relPath)))), path, nil)

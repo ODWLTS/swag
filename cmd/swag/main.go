@@ -15,24 +15,25 @@ import (
 )
 
 const (
-	searchDirFlag         = "dir"
-	excludeFlag           = "exclude"
-	generalInfoFlag       = "generalInfo"
-	propertyStrategyFlag  = "propertyStrategy"
-	outputFlag            = "output"
-	outputTypesFlag       = "outputTypes"
-	parseVendorFlag       = "parseVendor"
-	parseDependencyFlag   = "parseDependency"
-	markdownFilesFlag     = "markdownFiles"
-	codeExampleFilesFlag  = "codeExampleFiles"
-	parseInternalFlag     = "parseInternal"
-	generatedTimeFlag     = "generatedTime"
-	requiredByDefaultFlag = "requiredByDefault"
-	parseDepthFlag        = "parseDepth"
-	instanceNameFlag      = "instanceName"
-	overridesFileFlag     = "overridesFile"
-	parseGoListFlag       = "parseGoList"
-	quietFlag             = "quiet"
+	searchDirFlag            = "dir"
+	excludeFlag              = "exclude"
+	excludeDependenciesFlag  = "excludeDependencies"
+	generalInfoFlag          = "generalInfo"
+	propertyStrategyFlag     = "propertyStrategy"
+	outputFlag               = "output"
+	outputTypesFlag          = "outputTypes"
+	parseVendorFlag          = "parseVendor"
+	parseDependencyFlag      = "parseDependency"
+	markdownFilesFlag        = "markdownFiles"
+	codeExampleFilesFlag     = "codeExampleFiles"
+	parseInternalFlag        = "parseInternal"
+	generatedTimeFlag        = "generatedTime"
+	requiredByDefaultFlag    = "requiredByDefault"
+	parseDepthFlag           = "parseDepth"
+	instanceNameFlag         = "instanceName"
+	overridesFileFlag        = "overridesFile"
+	parseGoListFlag          = "parseGoList"
+	quietFlag                = "quiet"
 )
 
 var initFlags = []cli.Flag{
@@ -56,6 +57,10 @@ var initFlags = []cli.Flag{
 	&cli.StringFlag{
 		Name:  excludeFlag,
 		Usage: "Exclude directories and files when searching, comma separated",
+	},
+	&cli.StringFlag{
+		Name:  excludeDependenciesFlag,
+		Usage: "Exclude dependencies when searching, comma separated",
 	},
 	&cli.StringFlag{
 		Name:    propertyStrategyFlag,
@@ -149,24 +154,25 @@ func initAction(ctx *cli.Context) error {
 	}
 
 	return gen.New().Build(&gen.Config{
-		SearchDir:           ctx.String(searchDirFlag),
-		Excludes:            ctx.String(excludeFlag),
-		MainAPIFile:         ctx.String(generalInfoFlag),
-		PropNamingStrategy:  strategy,
-		OutputDir:           ctx.String(outputFlag),
-		OutputTypes:         outputTypes,
-		ParseVendor:         ctx.Bool(parseVendorFlag),
-		ParseDependency:     ctx.Bool(parseDependencyFlag),
-		MarkdownFilesDir:    ctx.String(markdownFilesFlag),
-		ParseInternal:       ctx.Bool(parseInternalFlag),
-		GeneratedTime:       ctx.Bool(generatedTimeFlag),
-		RequiredByDefault:   ctx.Bool(requiredByDefaultFlag),
-		CodeExampleFilesDir: ctx.String(codeExampleFilesFlag),
-		ParseDepth:          ctx.Int(parseDepthFlag),
-		InstanceName:        ctx.String(instanceNameFlag),
-		OverridesFile:       ctx.String(overridesFileFlag),
-		ParseGoList:         ctx.Bool(parseGoListFlag),
-		Debugger:            logger,
+		SearchDir:            ctx.String(searchDirFlag),
+		Excludes:             ctx.String(excludeFlag),
+		ExcludeDependencies: ctx.String(excludeDependenciesFlag),
+		MainAPIFile:          ctx.String(generalInfoFlag),
+		PropNamingStrategy:   strategy,
+		OutputDir:            ctx.String(outputFlag),
+		OutputTypes:          outputTypes,
+		ParseVendor:          ctx.Bool(parseVendorFlag),
+		ParseDependency:      ctx.Bool(parseDependencyFlag),
+		MarkdownFilesDir:     ctx.String(markdownFilesFlag),
+		ParseInternal:        ctx.Bool(parseInternalFlag),
+		GeneratedTime:        ctx.Bool(generatedTimeFlag),
+		RequiredByDefault:    ctx.Bool(requiredByDefaultFlag),
+		CodeExampleFilesDir:  ctx.String(codeExampleFilesFlag),
+		ParseDepth:           ctx.Int(parseDepthFlag),
+		InstanceName:         ctx.String(instanceNameFlag),
+		OverridesFile:        ctx.String(overridesFileFlag),
+		ParseGoList:          ctx.Bool(parseGoListFlag),
+		Debugger:             logger,
 	})
 }
 

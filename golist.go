@@ -53,6 +53,12 @@ func (parser *Parser) getAllGoFileInfoFromDepsByList(pkg *build.Package) error {
 		return nil
 	}
 
+	if len(parser.excludeDependencies) > 0 {
+		if _, ok := parser.excludeDependencies[pkg.Name]; ok {
+			return nil
+		}
+	}
+
 	srcDir := pkg.Dir
 	var err error
 	for i := range pkg.GoFiles {
