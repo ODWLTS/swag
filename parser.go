@@ -223,6 +223,8 @@ func New(options ...func(*Parser)) *Parser {
 		option(parser)
 	}
 
+	parser.packages.loadDependency = parser.loadDependencyByList
+
 	return parser
 }
 

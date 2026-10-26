@@ -18,6 +18,13 @@ type PackagesDefinitions struct {
 	files             map[*ast.File]*AstFileInfo
 	packages          map[string]*PackageDefinitions
 	uniqueDefinitions map[string]*TypeSpecDef
+
+	// loadDependency, when set, loads the package at an import path and the
+	// packages it depends on into the collection by parsing their files only,
+	// without type-checking. It reports false when it could not resolve the
+	// import path, in which case loadExternalPackage falls back to
+	// golang.org/x/tools/go/loader.
+	loadDependency func(importPath string) (bool, error)
 }
 
 // NewPackagesDefinitions create object PackagesDefinitions.
@@ -237,7 +244,27 @@ func (pkgDefs *PackagesDefinitions) findTypeSpec(pkgPath string, typeName string
 	return nil
 }
 
+// loadExternalPackage loads the types of a package that is referenced by a
+// parsed file but was not part of the parsed dependency set (for example a
+// type named in a @Success annotation of a handler in an extra --dir).
+//
+// It prefers the parse-only loader installed by the Parser (go list + go/parser)
+// because golang.org/x/tools/go/loader type-checks the package and its entire
+// import graph, which costs tens of seconds on a large module.
 func (pkgDefs *PackagesDefinitions) loadExternalPackage(importPath string) error {
+	if pkgDefs.loadDependency != nil {
+		loaded, err := pkgDefs.loadDependency(importPath)
+		if loaded || err != nil {
+			return err
+		}
+	}
+
+	return pkgDefs.loadExternalPackageWithLoader(importPath)
+}
+
+// loadExternalPackageWithLoader loads a package with golang.org/x/tools/go/loader,
+// which type-checks it together with everything it imports.
+func (pkgDefs *PackagesDefinitions) loadExternalPackageWithLoader(importPath string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -263,6 +290,35 @@ func (pkgDefs *PackagesDefinitions) loadExternalPackage(importPath string) error
 	}
 
 	return nil
+}
+
+// hasCollectedFiles reports whether files of the package at importPath have
+// already been collected, by the initial dependency walk or by a previous
+// lazy load.
+func (pkgDefs *PackagesDefinitions) hasCollectedFiles(importPath string) bool {
+	pd, ok := pkgDefs.packages[importPath]
+
+	return ok && len(pd.Files) > 0
+}
+
+// parseTypesFromPackage registers the type declarations of every collected
+// file of the package at importPath, in file path order.
+func (pkgDefs *PackagesDefinitions) parseTypesFromPackage(importPath string) {
+	pd, ok := pkgDefs.packages[importPath]
+	if !ok {
+		return
+	}
+
+	paths := make([]string, 0, len(pd.Files))
+	for path := range pd.Files {
+		paths = append(paths, path)
+	}
+
+	sort.Strings(paths)
+
+	for _, path := range paths {
+		pkgDefs.parseTypesFromFile(pd.Files[path], importPath, nil)
+	}
 }
 
 // findPackagePathFromImports finds out the package path of a package via ranging imports of an ast.File
